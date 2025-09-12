@@ -28,7 +28,7 @@ def register():
         return jsonify({"error": "Invalid email. Must be a Gmail address"}), 400
 
     if User.query.filter_by(email=email).first():
-        return jsonify({"error": "Email already exists"}), 400
+        return jsonify({"error": "Email has already been used"}), 400
 
     user = User(username=username, email=email)
     user.set_password(password)
@@ -43,16 +43,16 @@ def login():
     data = request.get_json()
     req = LoginRequest(**data)
 
-    # Find user by email
+
     user = User.query.filter_by(email=req.email).first()
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    # Check password
+
     if not user.check_password(req.password):
         return jsonify({"error": "Incorrect password"}), 401
 
-    # Generate JWT token
+
     token = jwt.encode(
         {
             "user_id": user.id,
