@@ -1,8 +1,8 @@
 from flask import Flask
 
 from src.config.config import DevelopmentConfig
+from src.controllers.auth_controller import auth_bp
 from src.extensions import db
-from src.reminders.scheduler import init_scheduler
 
 
 def create_app():
@@ -13,12 +13,9 @@ def create_app():
 
     from src.controllers.task_controller import task_bp
     app.register_blueprint(task_bp, url_prefix="/tasks")
-
-    with app.app_context():
-        init_scheduler(app)
+    app.register_blueprint(auth_bp, url_prefix="/auth")
 
     return app
-
 
 
 if __name__ == "__main__":
