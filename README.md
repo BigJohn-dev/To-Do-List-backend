@@ -1,23 +1,21 @@
-📝 Flask To-Do List Backend
-This is a lightweight and modular backend API for a To-Do List application built using Flask, a Python microframework. It provides RESTful endpoints for managing tasks—adding, retrieving, updating, and deleting—to support a frontend or mobile client.
+# Task Management Application
 
-🚀 Features
-- Create new tasks
-- Retrieve all tasks
-- Update task status (e.g., mark as completed)
-- Delete tasks
-- JSON-based API responses
-- CORS enabled for frontend integration
-  
-🛠 Tech Stack
-- Python 3.14
-- Flask
-- Flask-CORS
-- SQLite
+## Overview
+This Task Management Application is a web-based tool designed to help users organize and manage their tasks efficiently. Users can create, update, and delete tasks, set due dates, estimate time for completion, and categorize tasks using tags. The application also includes a reminder feature that notifies users of upcoming tasks, ensuring that nothing important is overlooked.
 
-- Testing
-  API testing
-  - Postman
+## Features
+- **User Authentication**: Secure sign-up and login functionality for users.
+- **Task Management**: Create, read, update, and delete tasks.
+- **Due Dates**: Set and manage due dates for tasks.
+- **Time Estimates**: Estimate the time required to complete each task.
+- **Tagging System**: Organize tasks with custom tags for easy categorization.
+- **Reminders**: Receive notifications for tasks that are due soon.
+- **User-Specific Data**: Each user has their own set of tasks, ensuring privacy and organization.
 
-
-
+## Technologies Used
+- **Flask**: A lightweight WSGI web application framework for Python (backend).
+- **SQLAlchemy**: An ORM (Object Relational Mapper) for database interaction.
+- **SQLite**: A simple, lightweight database for development.
+- **APScheduler**: A scheduling library for Python to handle reminders.
+- **React**: A JavaScript library for building user interfaces (frontend).
+- **HTML/CSS**: For styling the application.
