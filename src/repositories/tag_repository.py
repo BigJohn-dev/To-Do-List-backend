@@ -1,4 +1,3 @@
-
 from src.extensions import db
 from src.models.tag import Tag
 

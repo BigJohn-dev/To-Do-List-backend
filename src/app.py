@@ -1,9 +1,7 @@
 from flask import Flask
-
 from src.config.config import DevelopmentConfig
 from src.controllers.auth_controller import auth_bp
 from src.extensions import db
-
 
 def create_app():
     app = Flask(__name__)
@@ -16,7 +14,6 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix="/auth")
 
     return app
-
 
 if __name__ == "__main__":
     app = create_app()

@@ -7,6 +7,9 @@ def get_all_tasks():
 def get_task(task_id):
     return Task.query.get(task_id)
 
+def get_tasks_by_user(user_id):
+    return Task.query.filter_by(user_id=user_id).all()
+
 def save_task(task):
     db.session.add(task)
     db.session.commit()

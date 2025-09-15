@@ -1,4 +1,3 @@
-
 from datetime import datetime
 from src.repositories import task_repository, tag_repository
 from src.models.task import Task
@@ -8,10 +7,9 @@ def create_task(data, user_id):
     if not title or not title.strip():
         return {"error": "Title is required"}, 400
 
-    existing = Task.query.filter_by(user_id=user_id).all()
-    for t in existing:
-        if t.title.strip().lower() == title.strip().lower():
-            return {"error": f"Task with title '{title}' already exists for this user"}, 400
+    existing = task_repository.get_tasks_by_user(user_id)
+    if any(t.title.strip().lower() == title.strip().lower() for t in existing):
+        return {"error": f"Task with title '{title}' already exists for this user"}, 400
 
     due_date = None
     if "due_date" in data and data["due_date"]:
@@ -34,16 +32,14 @@ def create_task(data, user_id):
         title=title.strip(),
         due_date=due_date,
         time_estimate=time_estimate,
-        user_id=user_id)
+        user_id=user_id
+    )
 
     return task_repository.save_task(new_task).to_dict()
 
-
-
-
-def update_task(task_id, data):
+def update_task(task_id, data, user_id):
     task = task_repository.get_task(task_id)
-    if not task:
+    if not task or task.user_id != user_id:
         return None
 
     if "title" in data:
@@ -66,14 +62,12 @@ def update_task(task_id, data):
 
     return task_repository.update_task(task).to_dict()
 
+def list_tasks(user_id):
+    return [task.to_dict() for task in task_repository.get_tasks_by_user(user_id)]
 
-def list_tasks():
-    return [task.to_dict() for task in task_repository.get_all_tasks()]
-
-
-def remove_task(task_id):
+def remove_task(task_id, user_id):
     task = task_repository.get_task(task_id)
-    if task:
-        task_repository.delete_task(task)
-        return True
-    return False
+    if not task or task.user_id != user_id:
+        return False
+    task_repository.delete_task(task)
+    return True
