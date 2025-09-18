@@ -1,12 +1,11 @@
 import datetime
 import re
 from functools import wraps
-
+from bson import ObjectId
 import jwt
 from flask import Blueprint, request, jsonify, current_app
-from src.dtos.login_dto import LoginRequest, LoginResponse
-from src.models.user import User
-from src.extensions import db
+from werkzeug.security import generate_password_hash, check_password_hash
+from src.extensions import mongo
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -29,63 +28,97 @@ def register():
     if not validate_email(email):
         return jsonify({"error": "Invalid email. Must be a Gmail address"}), 400
 
-    if User.query.filter_by(email=email).first():
+    # Check if user exists
+    if mongo.db.users.find_one({"email": email}):
         return jsonify({"error": "Email has already been used"}), 400
 
-    user = User(username=username, email=email)
-    user.set_password(password)
-    db.session.add(user)
-    db.session.commit()
+    hashed_password = generate_password_hash(password)
 
-    return jsonify(user.to_dict()), 201
+    user = {
+        "username": username,
+        "email": email,
+        "password": hashed_password,
+        "created_at": datetime.datetime.utcnow()
+    }
+
+    result = mongo.db.users.insert_one(user)
+    user["_id"] = str(result.inserted_id)
+
+    return jsonify({
+        "id": user["_id"],
+        "username": user["username"],
+        "email": user["email"]
+    }), 201
 
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
-    req = LoginRequest(**data)
+    email = data.get("email")
+    password = data.get("password")
 
+    if not email or not password:
+        return jsonify({"error": "Email and password are required"}), 400
 
-    user = User.query.filter_by(email=req.email).first()
+    user = mongo.db.users.find_one({"email": email})
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-
-    if not user.check_password(req.password):
+    if not check_password_hash(user["password"], password):
         return jsonify({"error": "Incorrect password"}), 401
-
 
     token = jwt.encode(
         {
-            "user_id": user.id,
+            "user_id": str(user["_id"]),
             "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)
         },
         current_app.config["SECRET_KEY"],
         algorithm="HS256"
     )
 
-    res = LoginResponse(
-        message="Login successful",
-        user={"id": user.id, "username": user.username, "email": user.email},
-        token=token
-    )
-    return jsonify(res.__dict__), 200
+    return jsonify({
+        "message": "Login successful",
+        "user": {"id": str(user["_id"]), "username": user["username"], "email": user["email"]},
+        "token": token
+    }), 200
 
 
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        token = request.headers.get("Authorization")
+        auth_header = request.headers.get("Authorization")
 
-        if not token:
+        if not auth_header:
             return jsonify({"error": "Token is missing"}), 401
 
+        parts = auth_header.split()
+        if len(parts) != 2 or parts[0].lower() != "bearer":
+            return jsonify({"error": "Invalid token format"}), 401
+
+        token = parts[1]
+
         try:
-            data = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
-            current_user = User.query.get(data["user_id"])
-        except:
+            data = jwt.decode(
+                token,
+                current_app.config["SECRET_KEY"],
+                algorithms=["HS256"]
+            )
+            user_id = data["user_id"]
+
+            # Convert back to ObjectId for MongoDB lookup
+            current_user = mongo.db.users.find_one({"_id": ObjectId(user_id)})
+
+            if not current_user:
+                return jsonify({"error": "User not found"}), 404
+
+        except jwt.ExpiredSignatureError:
+            return jsonify({"error": "Token has expired"}), 401
+        except jwt.InvalidTokenError as e:
+            print(f"JWT decode error: {e}")
             return jsonify({"error": "Token is invalid"}), 401
 
         return f(current_user, *args, **kwargs)
 
     return decorated
+
+

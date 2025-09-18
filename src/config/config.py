@@ -9,8 +9,11 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-class DevelopmentConfig(Config):
+class DevelopmentConfig:
     DEBUG = True
+    SECRET_KEY = "supersecretkey123"
+    MONGO_URI = "mongodb://localhost:27017/todo_app"
+
 
 class ProductionConfig(Config):
     DEBUG = False

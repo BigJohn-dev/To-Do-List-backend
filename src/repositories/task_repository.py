@@ -1,25 +1,23 @@
-from src.extensions import db
-from src.models.task import Task
-
-def get_all_tasks():
-    return Task.query.all()
-
-def get_task(task_id):
-    return Task.query.get(task_id)
-
-def get_tasks_by_user(user_id):
-    return Task.query.filter_by(user_id=user_id).all()
+from src.extensions import mongo
+from bson import ObjectId
 
 def save_task(task):
-    db.session.add(task)
-    db.session.commit()
-    return task
+    result = mongo.db.tasks.insert_one(task)
+    return str(result.inserted_id)
 
-def update_task(task):
-    db.session.add(task)
-    db.session.commit()
-    return task
+def get_task(task_id):
+    return mongo.db.tasks.find_one({"_id": ObjectId(task_id)})
 
-def delete_task(task):
-    db.session.delete(task)
-    db.session.commit()
+def get_all_tasks():
+    return list(mongo.db.tasks.find())
+
+def get_tasks_by_user(user_id):
+    return list(mongo.db.tasks.find({"user_id": ObjectId(user_id)}))
+
+def update_task(task_id, updates):
+    mongo.db.tasks.update_one({"_id": ObjectId(task_id)}, {"$set": updates})
+    return get_task(task_id)
+
+def delete_task(task_id):
+    result = mongo.db.tasks.delete_one({"_id": ObjectId(task_id)})
+    return result.deleted_count > 0

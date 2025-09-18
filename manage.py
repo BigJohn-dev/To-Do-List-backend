@@ -1,11 +1,17 @@
-from flask_sqlalchemy import SQLAlchemy
+from flask_pymongo import PyMongo
+
 from src.app import create_app
-from src.extensions import db
 
-db = SQLAlchemy()
-
+# Initialize Flask app
 app = create_app()
 
+# Setup MongoDB
+mongo = PyMongo(app)
+
 with app.app_context():
-    db.create_all()
-    print("✅ Database tables created successfully!")
+    try:
+        # Just test the connection
+        mongo.cx.server_info()
+        print("✅ MongoDB connected successfully!")
+    except Exception as e:
+        print("❌ MongoDB connection failed:", str(e))
