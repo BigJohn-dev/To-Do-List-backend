@@ -10,7 +10,7 @@ def create_app():
 
     mongo.init_app(app)
 
-    CORS(app, resources={r"/*": {"origins": "http://localhost:5174"}})
+    CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 
     from src.controllers.task_controller import task_bp
     app.register_blueprint(task_bp, url_prefix="/tasks")

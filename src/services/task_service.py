@@ -1,5 +1,7 @@
 from datetime import datetime
 from src.repositories import task_repository, tag_repository
+from bson import ObjectId
+from src.extensions import mongo
 
 
 def create_task(data, user_id):
@@ -84,9 +86,6 @@ def update_task(task_id, data, user_id):
     return updated_task
 
 
-from bson import ObjectId
-from src.extensions import mongo
-
 def list_tasks(user_id):
     tasks_cursor = mongo.db.tasks.find({"user_id": user_id})
 
@@ -96,7 +95,6 @@ def list_tasks(user_id):
         tasks.append(task)
 
     return tasks
-
 
 
 def remove_task(task_id, user_id):
