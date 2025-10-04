@@ -9,12 +9,10 @@ def create_task(data, user_id):
     if not title or not title.strip():
         return {"error": "Title is required"}, 400
 
-    # Prevent duplicate titles per user
     existing = task_repository.get_tasks_by_user(user_id)
     if any(t["title"].strip().lower() == title.strip().lower() for t in existing):
         return {"error": f"Task with title '{title}' already"}, 400
 
-    # Parse due_date
     due_date = None
     if "due_date" in data and data["due_date"]:
         try:
@@ -22,19 +20,19 @@ def create_task(data, user_id):
         except ValueError:
             return {"error": "Invalid date format. Use YYYY-MM-DDTHH:MM:SS"}, 400
 
-    # Validate time_estimate
+    if due_date < datetime.now():
+        return {"error": "Invalid date setting"}, 400
+
     time_estimate = data.get("time_estimate")
     if time_estimate is not None:
         if not isinstance(time_estimate, int) or time_estimate <= 0:
             return {"error": "time_estimate must be a positive integer"}, 400
 
-    # Validate tags
     tags = data.get("tags")
     if tags is not None:
         if not isinstance(tags, list) or not all(isinstance(tag, str) for tag in tags):
             return {"error": "tags must be a list of strings"}, 400
 
-    # Build task as a dict (MongoDB-friendly)
     new_task = {
         "title": title.strip(),
         "completed": False,
@@ -48,8 +46,6 @@ def create_task(data, user_id):
 
 
 def update_task(task_id, data, user_id):
-    """Update a task belonging to the given user_id (string-based)"""
-
     try:
         task_obj_id = ObjectId(task_id)
     except Exception:

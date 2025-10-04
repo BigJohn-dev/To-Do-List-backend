@@ -7,7 +7,7 @@ class Task:
 
     def __init__(self, title, user_id, due_date=None, time_estimate=None, completed=False, tags=None):
         self.title = title
-        self.user_id = ObjectId(user_id)  # store as ObjectId
+        self.user_id = ObjectId(user_id)
         self.due_date = due_date
         self.time_estimate = time_estimate
         self.completed = completed

@@ -40,7 +40,3 @@ def init_scheduler(app):
     scheduler.add_job(func=check_reminders, trigger="interval", seconds=60)
     scheduler.start()
 
-    # Ensure scheduler shuts down gracefully with the app
-    @app.teardown_appcontext
-    def shutdown_scheduler(exception=None):
-        scheduler.shutdown()
