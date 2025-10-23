@@ -10,7 +10,7 @@ def create_app():
 
     mongo.init_app(app)
 
-    CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
+    CORS(app, origins=["https://to-do-list-frontend-rouge-eta.vercel.app"])
 
     from src.controllers.task_controller import task_bp
     app.register_blueprint(task_bp, url_prefix="/tasks")
